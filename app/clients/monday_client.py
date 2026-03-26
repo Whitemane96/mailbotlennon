@@ -85,7 +85,7 @@ def get_file_from_column(item_id: int, column_id: str) -> dict:
     """
     Retrieves the file asset directly from the item's assets list.
     """
-    # This query gets all assets for the item and filters by the specific column ID
+    
     query = """
     query ($itemId: [ID!]) {
       items (ids: $itemId) {
@@ -103,27 +103,26 @@ def get_file_from_column(item_id: int, column_id: str) -> dict:
     headers = {
         "Authorization": MONDAY_API_TOKEN,
         "Content-Type": "application/json",
-        "API-Version": "2024-01" # Updated to a more recent version
+        "API-Version": "2024-01" 
     }
 
     response = requests.post(MONDAY_API_URL, json={"query": query, "variables": variables}, headers=headers)
     data = response.json()
     
     if "errors" in data:
-        print(f"DEBUG: GraphQL Errors: {data['errors']}")
+        #print(f"DEBUG: GraphQL Errors: {data['errors']}")
         return None
     
     try:
         assets = data["data"]["items"][0]["assets"]
         if not assets:
-            print(f"DEBUG: No assets found for item {item_id}")
+            #print(f"DEBUG: No assets found for item {item_id}")
             return None
         
         target_asset = assets[0] 
         file_name = target_asset["name"]
         download_url = target_asset["public_url"]
 
-        # Download the file bytes into local memory (cache)
         file_response = requests.get(download_url)
         return {
             "name": file_name,
@@ -131,5 +130,5 @@ def get_file_from_column(item_id: int, column_id: str) -> dict:
         }
 
     except (KeyError, IndexError) as e:
-        print(f"DEBUG: Error parsing assets: {str(e)}")
+        #print(f"DEBUG: Error parsing assets: {str(e)}")
         return None
