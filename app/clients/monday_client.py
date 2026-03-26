@@ -27,7 +27,6 @@ def create_monday_update(item_id: int, body: str) -> dict:
     if not item_id:
         raise HTTPException(status_code=400, detail="Missing monday item ID")
 
-    # The GraphQL query to create a comment (update)
     query = """
     mutation ($itemId: ID!, $body: String!) {
       create_update (item_id: $itemId, body: $body) {
@@ -58,7 +57,9 @@ def create_monday_update(item_id: int, body: str) -> dict:
     return response.json()
 
 def get_column_id_by_title(board_id: int, title: str) -> str:
-    """Finds a column ID based on its display title."""
+    """
+    Finds a column ID based on its display title.
+    """
     query = """
     query ($boardId: [ID!]) {
       boards (ids: $boardId) {
@@ -113,14 +114,11 @@ def get_file_from_column(item_id: int, column_id: str) -> dict:
         return None
     
     try:
-        # Fetch all assets for the item
         assets = data["data"]["items"][0]["assets"]
         if not assets:
             print(f"DEBUG: No assets found for item {item_id}")
             return None
-
-        # In many cases, you want the most recently uploaded asset
-        # For simplicity, we grab the first one, but you could filter by name/extension
+        
         target_asset = assets[0] 
         file_name = target_asset["name"]
         download_url = target_asset["public_url"]

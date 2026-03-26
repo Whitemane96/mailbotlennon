@@ -47,35 +47,32 @@ def send_from_drive(
 async def handle_status_webhook(request: Request, db: Session = Depends(get_db)):
     data = await request.json()
     
-    # Required for Monday webhook verification
     if "challenge" in data:
         return {"challenge": data["challenge"]}
 
     event = data.get("event", {})
     item_id = event.get("pulseId")
     board_id = event.get("boardId")
-    print(f"DEBUG: Received webhook for Item ID: {item_id}")
+    #print(f"DEBUG: Received webhook for Item ID: {item_id}")
     
     col_id = get_column_id_by_title(board_id, "Stannp Files")
     
     if not col_id:
-        print(f"DEBUG: Could not find a column named 'Stannp Files' on board {board_id}")
+        #print(f"DEBUG: Could not find a column named 'Stannp Files' on board {board_id}")
         return {"status": "error", "message": "Column not found"}
     
-    # 'files' should be the ID of your column in Monday
     file_data = get_file_from_column(item_id, column_id=col_id)
     
     if not file_data:
-        print(f"DEBUG: No file found in column file_mm1gnvza for item {item_id}")
+        #print(f"DEBUG: No file found in column file_mm1gnvza for item {item_id}")
         return {"status": "no_file_found"}
 
-    print(f"DEBUG: Found file {file_data['name']}, starting Stannp process...")
+    #print(f"DEBUG: Found file {file_data['name']}, starting Stannp process...")
 
     if file_data:
-        # Fetch default user for database record
+        # Fetch default user for database record, assumes it is admin for now.
         default_user = db.query(User).first()
         
-        # Process the mailing via your existing service
         result = create_letter_jobs_from_pdf_bytes(
             pdf_bytes=file_data["bytes"],
             original_file_name=file_data["name"],
@@ -84,10 +81,9 @@ async def handle_status_webhook(request: Request, db: Session = Depends(get_db))
             save_pdf=False
         )
         
-        # Post the result as a comment
         post_monday_comment(item_id, result.get("user_message", "Mailing processed."))
         
-    else:
-        print(f"DEBUG: Column {col_id} is empty for item {item_id}")
+    #else:
+        #print(f"DEBUG: Column {col_id} is empty for item {item_id}")
 
     return {"status": "success"}
